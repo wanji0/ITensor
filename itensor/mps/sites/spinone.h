@@ -2,23 +2,23 @@
 // Distributed under the ITensor Library License, Version 1.2
 // (See accompanying LICENSE file.)
 //
-#ifndef __ITENSOR_SPINONE_H
-#define __ITENSOR_SPINONE_H
+#ifndef __ITENSOR_SPINONESOP_H
+#define __ITENSOR_SPINONESOP_H
 #include "itensor/mps/siteset.h"
 #include "itensor/mps/sites/spinhalf.h"
 
 namespace itensor {
 
-class SpinOne : public SiteSet
+class SpinOneSOP : public SiteSet
     {
     public:
 
-    SpinOne() { }
+    SpinOneSOP() { }
 
-    SpinOne(int N, 
+    SpinOneSOP(int N, 
             Args const& args = Args::global());
 
-    SpinOne(std::vector<IQIndex> const& inds);
+    SpinOneSOP(std::vector<IQIndex> const& inds);
 
     void
     read(std::istream& s);
@@ -26,16 +26,16 @@ class SpinOne : public SiteSet
     };
 
 
-class SpinOneSite
+class SpinOneSOPSite
     {
     IQIndex s;
     public:
 
-    SpinOneSite() { }
+    SpinOneSOPSite() { }
 
-    SpinOneSite(IQIndex I) : s(I) { }
+    SpinOneSOPSite(IQIndex I) : s(I) { }
 
-    SpinOneSite(int n, Args const& args = Args::global())
+    SpinOneSOPSite(int n, Args const& args = Args::global())
         {
         s = IQIndex{nameint("S=1 site=",n),
             Index(nameint("Up:site",n),1,Site),QN("Sz=",+2),
@@ -180,6 +180,13 @@ class SpinOneSite
             Op.set(Dn,DnP,1);
             }
         else
+        if(opname == "expiSz") //exp(i*pi*Sz)
+            {
+                Op.set(Z0,Z0P,1);
+                Op.set(Up,UpP,-1);
+                Op.set(Dn,DnP,-1);
+            }
+        else
         if(opname == "XUp")
             {
             //m = +1 state along x axis
@@ -226,8 +233,8 @@ class SpinOneSite
         }
     };
 
-inline SpinOne::
-SpinOne(std::vector<IQIndex> const& inds)
+inline SpinOneSOP::
+SpinOneSOP(std::vector<IQIndex> const& inds)
     {
     int N = inds.size();
     auto sites = SiteStore(N);
@@ -237,15 +244,15 @@ SpinOne(std::vector<IQIndex> const& inds)
         if(Ii.m() != 3)
             {
             printfln("IQIndex at entry %d = %s",i,Ii);
-            Error("Only S=1 IQIndices allowed in SpinOne(vector<IQIndex>) constructor");
+            Error("Only S=1 IQIndices allowed in SpinOneSOP(vector<IQIndex>) constructor");
             }
-        sites.set(j,SpinOneSite(Ii));
+        sites.set(j,SpinOneSOPSite(Ii));
         }
     SiteSet::init(std::move(sites));
     }
 
-inline SpinOne::
-SpinOne(int N, 
+inline SpinOneSOP::
+SpinOneSOP(int N, 
         Args const& args)
     {
     auto shedge = args.getBool("SHalfEdge",false);
@@ -263,7 +270,7 @@ SpinOne(int N,
 
     for(int j = start; j < N; ++j)
         {
-        sites.set(j,SpinOneSite(j));
+        sites.set(j,SpinOneSOPSite(j));
         }
 
     if(shedge)
@@ -273,13 +280,13 @@ SpinOne(int N,
         }
     else
         {
-        sites.set(N,SpinOneSite(N));
+        sites.set(N,SpinOneSOPSite(N));
         }
 
     SiteSet::init(std::move(sites));
     }
 
-void inline SpinOne::
+void inline SpinOneSOP::
 read(std::istream& s)
     {
     int N = itensor::read<int>(s);
@@ -290,9 +297,9 @@ read(std::istream& s)
             {
             auto I = IQIndex{};
             I.read(s);
-            if(I.m() == 3) store.set(j,SpinOneSite(I));
+            if(I.m() == 3) store.set(j,SpinOneSOPSite(I));
             else if(I.m() == 2) store.set(j,SpinHalfSite(I));
-            else Error(format("SpinOne cannot read index of size %d",I.m()));
+            else Error(format("SpinOneSOP cannot read index of size %d",I.m()));
             }
         init(std::move(store));
         }
